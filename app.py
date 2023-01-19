@@ -203,5 +203,30 @@ def add_stock():
         cur.close()
         return redirect('/stock')
 
+# Edit stock amount
+@app.route('/stock/edit-stock', methods=['POST'])
+def edit_stock():
+    cur = mysql.connection.cursor()
+    stock_form = request.form
+    stocking_id = stock_form['stocking_id']
+    new_product_amount = stock_form['product_amount']
+    query_statement = f"UPDATE stocking SET product_amount={new_product_amount} WHERE stocking_id={stocking_id}"
+    cur.execute(query_statement)
+    mysql.connection.commit()
+    cur.close()
+    return redirect('/stock')
+
+# Delete stock
+@app.route('/stock/delete-stock')
+def delete_stock():
+    cur = mysql.connection.cursor()
+    stock_form = request.form
+    stocking_id = stock_form['stocking_id']
+    query_statement = f"DELETE FROM stocking WHERE stocking_id = {stocking_id}"
+    cur.execute(query_statement)
+    mysql.connection.commit()
+    return redirect('/stock')
+
+
 if __name__ == '__main__':
     app.run(debug=True)
