@@ -26,7 +26,7 @@ def all_vending():
     else:
         return None
 
-# Return one product 
+# Return one vending
 @app.route('/vending/single/<int:id>', methods=['GET'])
 def one_vending(id):
     cur = mysql.connection.cursor()
