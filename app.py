@@ -26,8 +26,20 @@ def all_vending():
     else:
         return None
 
+# Return one product 
+@app.route('/vending/single/<int:id>', methods=['GET'])
+def one_vending(id):
+    cur = mysql.connection.cursor()
+    number_of_rows = cur.execute("SELECT * FROM vending_machine WHERE vending_id = {id}")
+    if(number_of_rows>0):
+        vend = cur.fetchone()
+        cur.close()
+        return jsonify(vend)
+    else:
+        return None
+
 # Create new vending machine
-@app.route('/vending/create/', methods=['POST'])
+@app.route('/vending/create-vending/', methods=['POST'])
 def create_vending():
     vending_form = request.form
     vending_location = vending_form['vending_location']
@@ -51,44 +63,73 @@ def edit_vending(id):
     cur.close()
     return redirect('/vending')
 
-# Delete vending machine
+# Delete one vending machine
 @app.route('/vending/delete-vending/<int:id>/')
-def delete_product(id):
+def delete_vending(id):
     cur = mysql.connection.cursor()
     query_statement = f"DELETE FROM vending_machine WHERE vending_id = {id}"
     cur.execute(query_statement)
     mysql.connection.commit()
     return redirect('/vending')
 
-# @app.route('/product')
-# def all_product():
-#     cur = mysql.connection.cursor()
-#     number_of_rows = cur.execute("SELECT * FROM product ORDER BY product_price DESC")
-#     if(number_of_rows>0):
-#         prods = cur.fetchall()
-#         cur.close()
-#         return jsonify(prods)
-#     else:
-#         return None
+# Return all products ordered by price
+@app.route('/product')
+def all_product():
+    cur = mysql.connection.cursor()
+    number_of_rows = cur.execute("SELECT * FROM product ORDER BY product_price DESC")
+    if(number_of_rows>0):
+        prods = cur.fetchall()
+        cur.close()
+        return jsonify(prods)
+    else:
+        return None
 
-# @app.route('/product/single/<int:id>', methods=['GET'])
-# def one_product(id):
-#     cur = mysql.connection.cursor()
-#     number_of_rows = cur.execute("SELECT * FROM product WHERE product_id = {id}")
-#     if(number_of_rows>0):
-#         prods = cur.fetchone()
-#         cur.close()
-#         return jsonify(prods)
-#     else:
-#         return None
+# Return one product 
+@app.route('/product/single/<int:id>', methods=['GET'])
+def one_product(id):
+    cur = mysql.connection.cursor()
+    number_of_rows = cur.execute("SELECT * FROM product WHERE product_id = {id}")
+    if(number_of_rows>0):
+        prods = cur.fetchone()
+        cur.close()
+        return jsonify(prods)
+    else:
+        return None
 
-# @app.route('/delete-product/<int:id>/')
-# def delete_product(id):
-#     cur = mysql.connection.cursor()
-#     query_statement = f"DELETE FROM product WHERE product_id = {id}"
-#     cur.execute(query_statement)
-#     mysql.connection.commit()
-#     return redirect('/product')
+# Add new product
+@app.route('/product/add-product/', methods=['POST'])
+def add_product():
+    product_form = request.form
+    product_name = product_form['product_name']
+    product_price = product_form['product_price']
+    cur = mysql.connection.cursor()
+    query_statement = f"INSERT INTO product(product_name, product_price) VALUES ('{product_name}','{product_price}')"
+    cur.execute(query_statement)
+    mysql.connection.commit()
+    cur.close()
+    return redirect('/product')
+
+# Edit product
+@app.route('/product/edit-product/<int:id>', methods=['POST'])
+def edit_product(id):
+    cur = mysql.connection.cursor()
+    product_form = request.form
+    new_product_name = product_form['product_name']
+    new_product_price = product_form['product_price']
+    query_statement = f"UPDATE product SET product_name={new_product_name}, product_price={new_product_price} WHERE product_id = {id}"
+    cur.execute(query_statement)
+    mysql.connection.commit()
+    cur.close()
+    return redirect('/product')
+
+# Delete one product
+@app.route('/product/delete-product/<int:id>/')
+def delete_product(id):
+    cur = mysql.connection.cursor()
+    query_statement = f"DELETE FROM product WHERE product_id = {id}"
+    cur.execute(query_statement)
+    mysql.connection.commit()
+    return redirect('/product')
 
 if __name__ == '__main__':
     app.run(debug=True)
