@@ -38,6 +38,11 @@ Checklist:
 3. Stocking (vending_id, product_id, product_amount)
     - User can CREATE/ADD new stocks for specific vending machine and product and product amount
         *If stocking already existed, the product amount will add up cumulatively 
+        - 127.0.0.1:5000/stock/add-stock
+        - POST method
+        - Key: vending_id value: <int>
+        - Key: product_id value: <int>
+        - Key: product_amount value: <int>
     - User can READ/RETRIEVE all stocks from all vending machine
         - 127.0.0.1:5000/stock
     - User can READ/RETRIEVE all stocks from one specific vending machine
