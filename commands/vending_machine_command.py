@@ -1,7 +1,7 @@
 class Vending_Machine:
 
     SELECT_ALL = "SELECT * FROM vending_machine"
-    def find_vending_machine_by_id(id: int):
+    def get_vending_machine_by_id(id: int):
         return f"SELECT * FROM vending_machine WHERE vending_id = {id}"
 
     def create_vending_machine(vending_location):

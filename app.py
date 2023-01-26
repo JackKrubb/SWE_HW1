@@ -3,6 +3,7 @@ from flask_mysqldb import MySQL
 import yaml
 from flask_bootstrap import Bootstrap
 from commands.vending_machine_command import Vending_Machine
+from commands.product_command import Product
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -33,7 +34,7 @@ def all_vending():
 @app.route('/vending/single/<int:id>', methods=['GET'])
 def one_vending(id):
     cur = mysql.connection.cursor()
-    all_vending_machines_by_id = cur.execute(Vending_Machine.find_vending_machine_by_id(id))
+    all_vending_machines_by_id = cur.execute(Vending_Machine.get_vending_machine_by_id(id))
     if (all_vending_machines_by_id > 0):
         vend = cur.fetchone()
         cur.close()
@@ -68,7 +69,6 @@ def edit_vending(id):
 
 # Delete one vending machine
 
-
 @app.route('/vending/delete-vending/<int:id>')
 def delete_vending(id):
     cur = mysql.connection.cursor()
@@ -78,13 +78,11 @@ def delete_vending(id):
 
 # Return all products ordered by price
 
-
 @app.route('/product')
 def all_product():
     cur = mysql.connection.cursor()
-    number_of_rows = cur.execute(
-        "SELECT * FROM product ORDER BY product_price DESC")
-    if (number_of_rows > 0):
+    all_products = cur.execute(Product.SELECT_ALL)
+    if (all_products > 0):
         prods = cur.fetchall()
         cur.close()
         return jsonify(prods)
@@ -93,13 +91,11 @@ def all_product():
 
 # Return one product
 
-
 @app.route('/product/single/<int:id>', methods=['GET'])
 def one_product(id):
     cur = mysql.connection.cursor()
-    number_of_rows = cur.execute(
-        "SELECT * FROM product WHERE product_id = {id}")
-    if (number_of_rows > 0):
+    product_by_id = cur.execute(Product.get_product_by_id(id))
+    if (product_by_id > 0):
         prods = cur.fetchone()
         cur.close()
         return jsonify(prods)
@@ -115,8 +111,7 @@ def add_product():
     product_name = product_form['product_name']
     product_price = product_form['product_price']
     cur = mysql.connection.cursor()
-    query_statement = f"INSERT INTO product(product_name, product_price) VALUES ('{product_name}','{product_price}')"
-    cur.execute(query_statement)
+    cur.execute(Product.add_product(product_name, product_price))
     mysql.connection.commit()
     cur.close()
     return redirect('/product')
@@ -130,20 +125,17 @@ def edit_product(id):
     product_form = request.form
     new_product_name = product_form['product_name']
     new_product_price = product_form['product_price']
-    query_statement = f"UPDATE product SET product_name={new_product_name}, product_price={new_product_price} WHERE product_id = {id}"
-    cur.execute(query_statement)
+    cur.execute(Product.edit_product_by_id(id, new_product_name, new_product_price))
     mysql.connection.commit()
     cur.close()
     return redirect('/product')
 
 # Delete one product
 
-
 @app.route('/product/delete-product/<int:id>')
 def delete_product(id):
     cur = mysql.connection.cursor()
-    query_statement = f"DELETE FROM product WHERE product_id = {id}"
-    cur.execute(query_statement)
+    cur.execute(Product.delete_product_by_id(id))
     mysql.connection.commit()
     return redirect('/product')
 
