@@ -20,6 +20,20 @@ mysql = MySQL(app)
 
 # Return all vending machines
 
+def text_is_invalid(text):
+    if text.isnumeric():
+        return True
+    else:
+        return False
+
+def num_is_invalid(num):
+    if not isinstance(num, int):
+        return True
+    elif num < 0:
+        return True
+    else:
+        return False
+
 @app.route('/vending')
 def all_vending():
     sql_connection = Connection(mysql)
@@ -46,9 +60,11 @@ def one_vending(id):
 
 @app.route('/vending/create-vending', methods=['POST'])
 def create_vending():
-    sql_connection = Connection(mysql)
     vending_form = request.form
     vending_location = vending_form['vending_location']
+    if text_is_invalid(vending_location):
+        return jsonify(success=False, message="Vending location cannot be a number")
+    sql_connection = Connection(mysql)
     sql_connection.execute(Vending_Machine.create_vending_machine(vending_location))
     sql_connection.commit()
     return redirect('/vending')
@@ -57,9 +73,11 @@ def create_vending():
 # Edit vending machine
 @app.route('/vending/edit-vending/<int:id>', methods=['POST'])
 def edit_vending(id):
-    sql_connection = Connection(mysql)
     vending_form = request.form
     new_vending_location = vending_form['vending_location']
+    if text_is_invalid(new_vending_location):
+        return jsonify(success=False, message="Vending location cannot be a number")
+    sql_connection = Connection(mysql)
     sql_connection.execute(Vending_Machine.edit_vending_machine_by_id(new_vending_location, id))
     sql_connection.commit()
     return redirect('/vending')
@@ -104,6 +122,10 @@ def add_product():
     product_form = request.form
     product_name = product_form['product_name']
     product_price = product_form['product_price']
+    if text_is_invalid(product_name):
+        return jsonify(success=False, message="Product name cannot be a number")
+    elif num_is_invalid(product_price):
+        return jsonify(success=False, message="Invalid number, please input the correct input")
     sql_connection = Connection(mysql)
     sql_connection.execute(Product.add_product(product_name, product_price))
     sql_connection.commit()
@@ -113,10 +135,14 @@ def add_product():
 
 @app.route('/product/edit-product/<int:id>', methods=['POST'])
 def edit_product(id):
-    sql_connection = Connection(mysql)
     product_form = request.form
     new_product_name = product_form['product_name']
     new_product_price = product_form['product_price']
+    if text_is_invalid(new_product_name):
+        return jsonify(success=False, message="Product name cannot be a number")
+    elif num_is_invalid(new_product_price):
+        return jsonify(success=False, message="Invalid number, please input the correct input")
+    sql_connection = Connection(mysql)
     sql_connection.execute(Product.edit_product_by_id(id, new_product_name, new_product_price))
     sql_connection.commit()
     return redirect('/product')
@@ -181,7 +207,8 @@ def add_stock():
     vending_id = stock_form['vending_id']
     product_id = stock_form['product_id']
     product_amount = stock_form['product_amount']
-
+    if num_is_invalid(product_amount):
+        return jsonify(success=False, message="Invalid number, please input the correct input")
     sql_connection = Connection(mysql)
     duplicate = sql_connection.execute(Stock.get_one_stock_from_one_vend(product_id, vending_id))
     if duplicate > 0:
@@ -204,6 +231,8 @@ def edit_stock():
     stock_form = request.form
     stocking_id = stock_form['stocking_id']
     new_product_amount = stock_form['product_amount']
+    if num_is_invalid(new_product_amount):
+        return jsonify(success=False, message="Invalid number, please input the correct input")
     sql_connection.execute(Stock.edit_stock_by_id(new_product_amount, stocking_id))
     sql_connection.commit()
     return redirect('/stock')
