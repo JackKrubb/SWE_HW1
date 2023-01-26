@@ -2,6 +2,7 @@ from flask import Flask, render_template, url_for, redirect, request, jsonify
 from flask_mysqldb import MySQL
 import yaml
 from flask_bootstrap import Bootstrap
+from commands.vending_machine_command import Vending_Machine
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -15,11 +16,12 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
 # Return all vending machines
+
 @app.route('/vending')
 def all_vending():
     cur = mysql.connection.cursor()
-    number_of_rows = cur.execute("SELECT * FROM vending_machine")
-    if(number_of_rows>0):
+    all_vending_machines = cur.execute(Vending_Machine.SELECT_ALL)
+    if (all_vending_machines > 0):
         vend = cur.fetchall()
         cur.close()
         return jsonify(vend)
@@ -27,11 +29,12 @@ def all_vending():
         return None
 
 # Return one vending
+
 @app.route('/vending/single/<int:id>', methods=['GET'])
 def one_vending(id):
     cur = mysql.connection.cursor()
-    number_of_rows = cur.execute("SELECT * FROM vending_machine WHERE vending_id = {id}")
-    if(number_of_rows>0):
+    all_vending_machines_by_id = cur.execute(Vending_Machine.find_vending_machine_by_id(id))
+    if (all_vending_machines_by_id > 0):
         vend = cur.fetchone()
         cur.close()
         return jsonify(vend)
@@ -39,13 +42,14 @@ def one_vending(id):
         return None
 
 # Create new vending machine
+
+
 @app.route('/vending/create-vending', methods=['POST'])
 def create_vending():
     vending_form = request.form
     vending_location = vending_form['vending_location']
     cur = mysql.connection.cursor()
-    query_statement = f"INSERT INTO vending_machine(vending_location) VALUES ({vending_location})"
-    cur.execute(query_statement)
+    cur.execute(Vending_Machine.create_vending_machine(vending_location))
     mysql.connection.commit()
     cur.close()
     return redirect('/vending')
@@ -57,39 +61,45 @@ def edit_vending(id):
     cur = mysql.connection.cursor()
     vending_form = request.form
     new_vending_location = vending_form['vending_location']
-    query_statement = f"UPDATE vending_machine SET vending_location={new_vending_location} WHERE vending_id = {id}"
-    cur.execute(query_statement)
+    cur.execute(Vending_Machine.edit_vending_machine_by_id(new_vending_location, id))
     mysql.connection.commit()
     cur.close()
     return redirect('/vending')
 
 # Delete one vending machine
+
+
 @app.route('/vending/delete-vending/<int:id>')
 def delete_vending(id):
     cur = mysql.connection.cursor()
-    query_statement = f"DELETE FROM vending_machine WHERE vending_id = {id}"
-    cur.execute(query_statement)
+    cur.execute(Vending_Machine.delete_vending_machine_by_id(id))
     mysql.connection.commit()
     return redirect('/vending')
 
 # Return all products ordered by price
+
+
 @app.route('/product')
 def all_product():
     cur = mysql.connection.cursor()
-    number_of_rows = cur.execute("SELECT * FROM product ORDER BY product_price DESC")
-    if(number_of_rows>0):
+    number_of_rows = cur.execute(
+        "SELECT * FROM product ORDER BY product_price DESC")
+    if (number_of_rows > 0):
         prods = cur.fetchall()
         cur.close()
         return jsonify(prods)
     else:
         return None
 
-# Return one product 
+# Return one product
+
+
 @app.route('/product/single/<int:id>', methods=['GET'])
 def one_product(id):
     cur = mysql.connection.cursor()
-    number_of_rows = cur.execute("SELECT * FROM product WHERE product_id = {id}")
-    if(number_of_rows>0):
+    number_of_rows = cur.execute(
+        "SELECT * FROM product WHERE product_id = {id}")
+    if (number_of_rows > 0):
         prods = cur.fetchone()
         cur.close()
         return jsonify(prods)
@@ -97,6 +107,8 @@ def one_product(id):
         return None
 
 # Add new product
+
+
 @app.route('/product/add-product', methods=['POST'])
 def add_product():
     product_form = request.form
@@ -110,6 +122,8 @@ def add_product():
     return redirect('/product')
 
 # Edit product
+
+
 @app.route('/product/edit-product/<int:id>', methods=['POST'])
 def edit_product(id):
     cur = mysql.connection.cursor()
@@ -123,6 +137,8 @@ def edit_product(id):
     return redirect('/product')
 
 # Delete one product
+
+
 @app.route('/product/delete-product/<int:id>')
 def delete_product(id):
     cur = mysql.connection.cursor()
@@ -132,11 +148,13 @@ def delete_product(id):
     return redirect('/product')
 
 # Return all stocks in all vending machine
+
+
 @app.route('/stock')
 def all_stock():
     cur = mysql.connection.cursor()
     number_of_rows = cur.execute("SELECT * FROM stocking")
-    if(number_of_rows>0):
+    if (number_of_rows > 0):
         stock = cur.fetchall()
         cur.close()
         return jsonify(stock)
@@ -144,6 +162,8 @@ def all_stock():
         return None
 
 # Return one stock from one vending
+
+
 @app.route('/stock/single-stock', methods=['GET'])
 def one_stock_one_vend():
     stock_form = request.form
@@ -153,7 +173,7 @@ def one_stock_one_vend():
     cur = mysql.connection.cursor()
     query_statement = f"SELECT * FROM stocking WHERE product_id = {product_id} AND vending_id = {vending_id}"
     number_of_rows = cur.execute(query_statement)
-    if(number_of_rows>0):
+    if (number_of_rows > 0):
         stock = cur.fetchone()
         cur.close()
         return jsonify(stock)
@@ -161,6 +181,8 @@ def one_stock_one_vend():
         return None
 
 # Return all stock from one vending
+
+
 @app.route('/stock/single-vend', methods=['GET'])
 def all_stock_one_vend():
     stock_form = request.form
@@ -169,7 +191,7 @@ def all_stock_one_vend():
     cur = mysql.connection.cursor()
     query_statement = f"SELECT * FROM stocking WHERE vending_id = {vending_id}"
     number_of_rows = cur.execute(query_statement)
-    if(number_of_rows>0):
+    if (number_of_rows > 0):
         stock = cur.fetchall()
         cur.close()
         return jsonify(stock)
@@ -177,6 +199,8 @@ def all_stock_one_vend():
         return None
 
 # Add stocks
+
+
 @app.route('/stock/add-stock', methods=['POST'])
 def add_stock():
     stock_form = request.form
@@ -204,6 +228,8 @@ def add_stock():
         return redirect('/stock')
 
 # Edit stock amount
+
+
 @app.route('/stock/edit-stock', methods=['POST'])
 def edit_stock():
     cur = mysql.connection.cursor()
@@ -217,6 +243,8 @@ def edit_stock():
     return redirect('/stock')
 
 # Delete stock
+
+
 @app.route('/stock/delete-stock')
 def delete_stock():
     cur = mysql.connection.cursor()
