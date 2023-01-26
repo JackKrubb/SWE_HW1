@@ -2,6 +2,10 @@ from flask import Flask, render_template, url_for, redirect, request, jsonify
 from flask_mysqldb import MySQL
 import yaml
 from flask_bootstrap import Bootstrap
+from commands.vending_machine_command import Vending_Machine
+from commands.product_command import Product
+from commands.stock_command import Stock
+from sql_connection import Connection
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -15,216 +19,233 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
 # Return all vending machines
+
+def text_is_invalid(text):
+    if text.isnumeric():
+        return True
+    else:
+        return False
+
+def num_is_invalid(num):
+    if not isinstance(num, int):
+        return True
+    elif num < 0:
+        return True
+    else:
+        return False
+
 @app.route('/vending')
 def all_vending():
-    cur = mysql.connection.cursor()
-    number_of_rows = cur.execute("SELECT * FROM vending_machine")
-    if(number_of_rows>0):
-        vend = cur.fetchall()
-        cur.close()
+    sql_connection = Connection(mysql)
+    all_vending_machines = sql_connection.execute(Vending_Machine.SELECT_ALL)
+    if (all_vending_machines > 0):
+        vend = sql_connection.fetch_all_data()
         return jsonify(vend)
     else:
         return None
 
 # Return one vending
+
 @app.route('/vending/single/<int:id>', methods=['GET'])
 def one_vending(id):
-    cur = mysql.connection.cursor()
-    number_of_rows = cur.execute("SELECT * FROM vending_machine WHERE vending_id = {id}")
-    if(number_of_rows>0):
-        vend = cur.fetchone()
-        cur.close()
+    sql_connection = Connection(mysql)
+    all_vending_machines_by_id = sql_connection.execute(Vending_Machine.get_vending_machine_by_id(id))
+    if (all_vending_machines_by_id > 0):
+        vend = sql_connection.fetch_one_data()
         return jsonify(vend)
     else:
         return None
 
 # Create new vending machine
+
 @app.route('/vending/create-vending', methods=['POST'])
 def create_vending():
     vending_form = request.form
     vending_location = vending_form['vending_location']
-    cur = mysql.connection.cursor()
-    query_statement = f"INSERT INTO vending_machine(vending_location) VALUES ({vending_location})"
-    cur.execute(query_statement)
-    mysql.connection.commit()
-    cur.close()
+    if text_is_invalid(vending_location):
+        return jsonify(success=False, message="Vending location cannot be a number")
+    sql_connection = Connection(mysql)
+    sql_connection.execute(Vending_Machine.create_vending_machine(vending_location))
+    sql_connection.commit()
     return redirect('/vending')
 
 
 # Edit vending machine
 @app.route('/vending/edit-vending/<int:id>', methods=['POST'])
 def edit_vending(id):
-    cur = mysql.connection.cursor()
     vending_form = request.form
     new_vending_location = vending_form['vending_location']
-    query_statement = f"UPDATE vending_machine SET vending_location={new_vending_location} WHERE vending_id = {id}"
-    cur.execute(query_statement)
-    mysql.connection.commit()
-    cur.close()
+    if text_is_invalid(new_vending_location):
+        return jsonify(success=False, message="Vending location cannot be a number")
+    sql_connection = Connection(mysql)
+    sql_connection.execute(Vending_Machine.edit_vending_machine_by_id(new_vending_location, id))
+    sql_connection.commit()
     return redirect('/vending')
 
 # Delete one vending machine
+
 @app.route('/vending/delete-vending/<int:id>')
 def delete_vending(id):
-    cur = mysql.connection.cursor()
-    query_statement = f"DELETE FROM vending_machine WHERE vending_id = {id}"
-    cur.execute(query_statement)
-    mysql.connection.commit()
+    sql_connection = Connection(mysql)
+    sql_connection.execute(Vending_Machine.delete_vending_machine_by_id(id))
+    sql_connection.commit()
     return redirect('/vending')
 
 # Return all products ordered by price
+
 @app.route('/product')
 def all_product():
-    cur = mysql.connection.cursor()
-    number_of_rows = cur.execute("SELECT * FROM product ORDER BY product_price DESC")
-    if(number_of_rows>0):
-        prods = cur.fetchall()
-        cur.close()
+    sql_connection = Connection(mysql)
+    all_products = sql_connection.execute(Product.SELECT_ALL)
+    if (all_products > 0):
+        prods = sql_connection.fetch_all_data()
         return jsonify(prods)
     else:
         return None
 
-# Return one product 
+# Return one product
+
 @app.route('/product/single/<int:id>', methods=['GET'])
 def one_product(id):
-    cur = mysql.connection.cursor()
-    number_of_rows = cur.execute("SELECT * FROM product WHERE product_id = {id}")
-    if(number_of_rows>0):
-        prods = cur.fetchone()
-        cur.close()
+    sql_connection = Connection(mysql)
+    product_by_id = sql_connection.execute(Product.get_product_by_id(id))
+    if (product_by_id > 0):
+        prods = sql_connection.fetch_one_data()
         return jsonify(prods)
     else:
         return None
 
 # Add new product
+
 @app.route('/product/add-product', methods=['POST'])
 def add_product():
     product_form = request.form
     product_name = product_form['product_name']
     product_price = product_form['product_price']
-    cur = mysql.connection.cursor()
-    query_statement = f"INSERT INTO product(product_name, product_price) VALUES ('{product_name}','{product_price}')"
-    cur.execute(query_statement)
-    mysql.connection.commit()
-    cur.close()
+    if text_is_invalid(product_name):
+        return jsonify(success=False, message="Product name cannot be a number")
+    elif num_is_invalid(product_price):
+        return jsonify(success=False, message="Invalid number, please input the correct input")
+    sql_connection = Connection(mysql)
+    sql_connection.execute(Product.add_product(product_name, product_price))
+    sql_connection.commit()
     return redirect('/product')
 
 # Edit product
+
 @app.route('/product/edit-product/<int:id>', methods=['POST'])
 def edit_product(id):
-    cur = mysql.connection.cursor()
     product_form = request.form
     new_product_name = product_form['product_name']
     new_product_price = product_form['product_price']
-    query_statement = f"UPDATE product SET product_name={new_product_name}, product_price={new_product_price} WHERE product_id = {id}"
-    cur.execute(query_statement)
-    mysql.connection.commit()
-    cur.close()
+    if text_is_invalid(new_product_name):
+        return jsonify(success=False, message="Product name cannot be a number")
+    elif num_is_invalid(new_product_price):
+        return jsonify(success=False, message="Invalid number, please input the correct input")
+    sql_connection = Connection(mysql)
+    sql_connection.execute(Product.edit_product_by_id(id, new_product_name, new_product_price))
+    sql_connection.commit()
     return redirect('/product')
 
 # Delete one product
+
 @app.route('/product/delete-product/<int:id>')
 def delete_product(id):
-    cur = mysql.connection.cursor()
-    query_statement = f"DELETE FROM product WHERE product_id = {id}"
-    cur.execute(query_statement)
-    mysql.connection.commit()
+    sql_connection = Connection(mysql)
+    sql_connection.execute(Product.delete_product_by_id(id))
+    sql_connection.commit()
     return redirect('/product')
 
 # Return all stocks in all vending machine
+
 @app.route('/stock')
 def all_stock():
-    cur = mysql.connection.cursor()
-    number_of_rows = cur.execute("SELECT * FROM stocking")
-    if(number_of_rows>0):
-        stock = cur.fetchall()
-        cur.close()
+    sql_connection = Connection(mysql)
+    all_stocks = sql_connection.execute(Stock.SELECT_ALL)
+    if (all_stocks > 0):
+        stock = sql_connection.fetch_all_data()
         return jsonify(stock)
     else:
         return None
 
 # Return one stock from one vending
+
 @app.route('/stock/single-stock', methods=['GET'])
 def one_stock_one_vend():
     stock_form = request.form
     vending_id = stock_form['vending_id']
     product_id = stock_form['product_id']
 
-    cur = mysql.connection.cursor()
-    query_statement = f"SELECT * FROM stocking WHERE product_id = {product_id} AND vending_id = {vending_id}"
-    number_of_rows = cur.execute(query_statement)
-    if(number_of_rows>0):
-        stock = cur.fetchone()
-        cur.close()
+    sql_connection = Connection(mysql)
+    one_stock_from_one_vend = sql_connection.execute(Stock.get_one_stock_from_one_vend(product_id, vending_id))
+    if (one_stock_from_one_vend > 0):
+        stock = sql_connection.fetch_one_data()
         return jsonify(stock)
     else:
         return None
 
 # Return all stock from one vending
+
 @app.route('/stock/single-vend', methods=['GET'])
 def all_stock_one_vend():
     stock_form = request.form
     vending_id = stock_form['vending_id']
 
-    cur = mysql.connection.cursor()
-    query_statement = f"SELECT * FROM stocking WHERE vending_id = {vending_id}"
-    number_of_rows = cur.execute(query_statement)
-    if(number_of_rows>0):
-        stock = cur.fetchall()
-        cur.close()
+    sql_connection = Connection(mysql)
+    all_stocks_one_vend = sql_connection.execute(Stock.get_all_stock_from_one_vend(vending_id))
+    if (all_stocks_one_vend > 0):
+        stock = sql_connection.fetch_all_data()
         return jsonify(stock)
     else:
         return None
 
 # Add stocks
+
 @app.route('/stock/add-stock', methods=['POST'])
 def add_stock():
     stock_form = request.form
     vending_id = stock_form['vending_id']
     product_id = stock_form['product_id']
     product_amount = stock_form['product_amount']
-
-    cur = mysql.connection.cursor()
-    query_statement_check = f"SELECT * FROM stocking WHERE product_id={product_id} AND vending_id={vending_id}"
-    duplicate = cur.execute(query_statement_check)
+    if num_is_invalid(product_amount):
+        return jsonify(success=False, message="Invalid number, please input the correct input")
+    sql_connection = Connection(mysql)
+    duplicate = sql_connection.execute(Stock.get_one_stock_from_one_vend(product_id, vending_id))
     if duplicate > 0:
-        stock = cur.fetchone()
+        stock = sql_connection.fetch_one_data_without_close()
         stocking_id = stock['stocking_id']
         new_product_amount = int(stock['product_amount']) + int(product_amount)
-        query_statement = f"UPDATE stocking SET product_amount={new_product_amount} WHERE stocking_id={stocking_id}"
-        cur.execute(query_statement)
-        mysql.connection.commit()
-        cur.close()
+        sql_connection.execute(Stock.edit_stock_by_id(new_product_amount, stocking_id))
+        sql_connection.commit()
         return redirect('/stock')
     else:
-        query_statement = f"INSERT INTO stocking(vending_id, product_id, product_amount) VALUES ('{vending_id}','{product_id}','{product_amount}')"
-        cur.execute(query_statement)
-        mysql.connection.commit()
-        cur.close()
+        sql_connection.execute(Stock.add_stock(vending_id, product_id, product_amount))
+        sql_connection.commit()
         return redirect('/stock')
 
 # Edit stock amount
+
 @app.route('/stock/edit-stock', methods=['POST'])
 def edit_stock():
-    cur = mysql.connection.cursor()
+    sql_connection = Connection(mysql)
     stock_form = request.form
     stocking_id = stock_form['stocking_id']
     new_product_amount = stock_form['product_amount']
-    query_statement = f"UPDATE stocking SET product_amount={new_product_amount} WHERE stocking_id={stocking_id}"
-    cur.execute(query_statement)
-    mysql.connection.commit()
-    cur.close()
+    if num_is_invalid(new_product_amount):
+        return jsonify(success=False, message="Invalid number, please input the correct input")
+    sql_connection.execute(Stock.edit_stock_by_id(new_product_amount, stocking_id))
+    sql_connection.commit()
     return redirect('/stock')
 
 # Delete stock
+
 @app.route('/stock/delete-stock')
 def delete_stock():
-    cur = mysql.connection.cursor()
+    sql_connection = Connection(mysql)
     stock_form = request.form
     stocking_id = stock_form['stocking_id']
-    query_statement = f"DELETE FROM stocking WHERE stocking_id = {stocking_id}"
-    cur.execute(query_statement)
-    mysql.connection.commit()
+    sql_connection.execute(Stock.delete_stock_by_id(stocking_id))
+    sql_connection.commit()
     return redirect('/stock')
 
 
