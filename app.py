@@ -4,6 +4,7 @@ import yaml
 from flask_bootstrap import Bootstrap
 from commands.vending_machine_command import Vending_Machine
 from commands.product_command import Product
+from commands.stock_command import Stock
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -104,7 +105,6 @@ def one_product(id):
 
 # Add new product
 
-
 @app.route('/product/add-product', methods=['POST'])
 def add_product():
     product_form = request.form
@@ -117,7 +117,6 @@ def add_product():
     return redirect('/product')
 
 # Edit product
-
 
 @app.route('/product/edit-product/<int:id>', methods=['POST'])
 def edit_product(id):
@@ -145,8 +144,8 @@ def delete_product(id):
 @app.route('/stock')
 def all_stock():
     cur = mysql.connection.cursor()
-    number_of_rows = cur.execute("SELECT * FROM stocking")
-    if (number_of_rows > 0):
+    all_stocks = cur.execute(Stock.SELECT_ALL)
+    if (all_stocks > 0):
         stock = cur.fetchall()
         cur.close()
         return jsonify(stock)
@@ -163,9 +162,8 @@ def one_stock_one_vend():
     product_id = stock_form['product_id']
 
     cur = mysql.connection.cursor()
-    query_statement = f"SELECT * FROM stocking WHERE product_id = {product_id} AND vending_id = {vending_id}"
-    number_of_rows = cur.execute(query_statement)
-    if (number_of_rows > 0):
+    one_stock_from_one_vend = cur.execute(Stock.get_one_stock_from_one_vend(product_id, vending_id))
+    if (one_stock_from_one_vend > 0):
         stock = cur.fetchone()
         cur.close()
         return jsonify(stock)
@@ -181,9 +179,8 @@ def all_stock_one_vend():
     vending_id = stock_form['vending_id']
 
     cur = mysql.connection.cursor()
-    query_statement = f"SELECT * FROM stocking WHERE vending_id = {vending_id}"
-    number_of_rows = cur.execute(query_statement)
-    if (number_of_rows > 0):
+    all_stocks_one_vend = cur.execute(Stock.get_all_stock_from_one_vend(vending_id))
+    if (all_stocks_one_vend > 0):
         stock = cur.fetchall()
         cur.close()
         return jsonify(stock)
@@ -191,7 +188,6 @@ def all_stock_one_vend():
         return None
 
 # Add stocks
-
 
 @app.route('/stock/add-stock', methods=['POST'])
 def add_stock():
@@ -201,20 +197,17 @@ def add_stock():
     product_amount = stock_form['product_amount']
 
     cur = mysql.connection.cursor()
-    query_statement_check = f"SELECT * FROM stocking WHERE product_id={product_id} AND vending_id={vending_id}"
-    duplicate = cur.execute(query_statement_check)
+    duplicate = cur.execute(Stock.get_one_stock_from_one_vend(product_id, vending_id))
     if duplicate > 0:
         stock = cur.fetchone()
         stocking_id = stock['stocking_id']
         new_product_amount = int(stock['product_amount']) + int(product_amount)
-        query_statement = f"UPDATE stocking SET product_amount={new_product_amount} WHERE stocking_id={stocking_id}"
-        cur.execute(query_statement)
+        cur.execute(Stock.edit_stock_by_id(new_product_amount, stocking_id))
         mysql.connection.commit()
         cur.close()
         return redirect('/stock')
     else:
-        query_statement = f"INSERT INTO stocking(vending_id, product_id, product_amount) VALUES ('{vending_id}','{product_id}','{product_amount}')"
-        cur.execute(query_statement)
+        cur.execute(Stock.add_stock(vending_id, product_id, product_amount))
         mysql.connection.commit()
         cur.close()
         return redirect('/stock')
@@ -228,8 +221,7 @@ def edit_stock():
     stock_form = request.form
     stocking_id = stock_form['stocking_id']
     new_product_amount = stock_form['product_amount']
-    query_statement = f"UPDATE stocking SET product_amount={new_product_amount} WHERE stocking_id={stocking_id}"
-    cur.execute(query_statement)
+    cur.execute(Stock.edit_stock_by_id(new_product_amount, stocking_id))
     mysql.connection.commit()
     cur.close()
     return redirect('/stock')
@@ -242,8 +234,7 @@ def delete_stock():
     cur = mysql.connection.cursor()
     stock_form = request.form
     stocking_id = stock_form['stocking_id']
-    query_statement = f"DELETE FROM stocking WHERE stocking_id = {stocking_id}"
-    cur.execute(query_statement)
+    cur.execute(Stock.delete_stock_by_id(stocking_id))
     mysql.connection.commit()
     return redirect('/stock')
 

@@ -1,5 +1,5 @@
 class Product:
-    SELECT_ALL =  "SELECT * FROM product ORDER BY product_price DESC"
+    SELECT_ALL = "SELECT * FROM product ORDER BY product_price DESC"
 
     def get_product_by_id(id: int):
         return f"SELECT * FROM product WHERE product_id = {id}"
