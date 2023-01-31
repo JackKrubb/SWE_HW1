@@ -12,6 +12,7 @@ flask-mysqldb = "^1.0.1"
 flask-bootstrap = "^3.3.7.1"
 mysqlclient = "^2.1.1"
 pymysql = "^1.0.2"
+flask-wtf = "^1.1.1"
 
 
 [tool.poetry.dev-dependencies]

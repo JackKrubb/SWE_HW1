@@ -2,6 +2,7 @@ import yaml
 from flask import Flask, jsonify, redirect, request
 from flask_bootstrap import Bootstrap
 from flask_mysqldb import MySQL
+from flask_wtf.csrf import CSRFProtect
 from MySQLdb.constants.FIELD_TYPE import JSON
 
 from commands.product_command import Product
@@ -10,6 +11,8 @@ from commands.vending_machine_command import VendingMachine
 from sql_connection import Connection
 
 app = Flask(__name__)
+csrf = CSRFProtect()
+csrf.init_app(app)  # Compliant
 Bootstrap(app)
 
 cred = yaml.load(open("../cred.yaml"), Loader=yaml.Loader)
