@@ -22,7 +22,7 @@ mysql = MySQL(app)
 
 
 def text_is_invalid(text: str) -> bool:
-    """Check if the text is invalid.
+    """Check if the text is invalid test.
 
     Args:
         text (str): input text
