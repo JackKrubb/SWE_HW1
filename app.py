@@ -25,6 +25,7 @@ def text_is_invalid(text: str) -> bool:
     """Check if the text is invalid.
 
     Args:
+        something
         text (str): input text
 
     Returns:
