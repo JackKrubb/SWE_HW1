@@ -12,7 +12,7 @@ from sql_connection import Connection
 app = Flask(__name__)
 Bootstrap(app)
 
-cred = yaml.load(open("cred.yaml"), Loader=yaml.Loader)
+cred = yaml.load(open("../cred.yaml"), Loader=yaml.Loader)
 app.config["MYSQL_HOST"] = cred["mysql_host"]
 app.config["MYSQL_USER"] = cred["mysql_user"]
 app.config["MYSQL_PASSWORD"] = cred["mysql_password"]
