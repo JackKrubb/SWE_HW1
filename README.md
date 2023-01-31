@@ -1,10 +1,12 @@
-Software Engineering HW1 
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=JackKrubb_SWE_HW1&metric=coverage)](https://sonarcloud.io/summary/new_code?id=JackKrubb_SWE_HW1)
 
-Testing using Postman 
+Software Engineering HW1
+
+Testing using Postman
 
 Checklist:
 1. Vending Machine (vending_location)
-    - User can CREATE/ADD new vending machines specifying vending machine location 
+    - User can CREATE/ADD new vending machines specifying vending machine location
         - 127.0.0.1:5000/vending/create-vending
         - POST method
         - Key: vending_location value: "location name"
@@ -37,7 +39,7 @@ Checklist:
 
 3. Stocking (vending_id, product_id, product_amount)
     - User can CREATE/ADD new stocks for specific vending machine and product and product amount
-        *If stocking already existed, the product amount will add up cumulatively 
+        *If stocking already existed, the product amount will add up cumulatively
         - 127.0.0.1:5000/stock/add-stock
         - POST method
         - Key: vending_id value: <int>

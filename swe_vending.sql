@@ -11,7 +11,7 @@ create table product
     product_price float,
     primary key (product_id),
     constraint u_product
-		unique (product_id)	
+		unique (product_id)
 );
 
 DROP TABLE IF EXISTS vending_machine;
@@ -21,7 +21,7 @@ create table vending_machine
     vending_location varchar(100),
     primary key (vending_id),
     constraint u_vending
-		unique (vending_id)	
+		unique (vending_id)
 );
 
 DROP TABLE IF EXISTS stocking;
