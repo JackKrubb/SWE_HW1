@@ -23,9 +23,14 @@ app.config["MYSQL_DB"] = cred["mysql_db"]
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 mysql = MySQL(app)
 
+ALL_VENDING_ROUTE = "/vending"
+ALL_PRODUCT_ROUTE = "/product"
+ALL_STOCK_ROUTE = "/stock"
+INVALID_NUMBER_MSG = "Invalid number, please input the correct input"
+
 
 def text_is_invalid(text: str) -> bool:
-    """Check if the text is invalid test.
+    """Check if the text is invalid.
 
     Args:
         text (str): input text
@@ -109,7 +114,7 @@ def create_vending() -> JSON:
     sql_connection = Connection(mysql)
     sql_connection.execute(VendingMachine.create_vending_machine(vending_location))
     sql_connection.commit()
-    return redirect("/vending")
+    return redirect(ALL_VENDING_ROUTE)
 
 
 @app.route("/vending/edit-vending", methods=["POST"])
@@ -129,7 +134,7 @@ def edit_vending() -> JSON:
     sql_connection = Connection(mysql)
     sql_connection.execute(VendingMachine.edit_vending_machine_by_id(new_vending_location, vending_id))
     sql_connection.commit()
-    return redirect("/vending")
+    return redirect(ALL_VENDING_ROUTE)
 
 
 @app.route("/vending/delete-vending")
@@ -146,7 +151,7 @@ def delete_vending() -> JSON:
     sql_connection = Connection(mysql)
     sql_connection.execute(VendingMachine.delete_vending_machine_by_id(vending_id))
     sql_connection.commit()
-    return redirect("/vending")
+    return redirect(ALL_VENDING_ROUTE)
 
 
 @app.route("/product")
@@ -203,11 +208,11 @@ def add_product() -> JSON:
     if text_is_invalid(product_name):
         return jsonify(success=False, message="Product name cannot be a number")
     elif num_is_invalid(product_price):
-        return jsonify(success=False, message="Invalid number, please input the correct input")
+        return jsonify(success=False, message=INVALID_NUMBER_MSG)
     sql_connection = Connection(mysql)
     sql_connection.execute(Product.add_product(product_name, product_price))
     sql_connection.commit()
-    return redirect("/product")
+    return redirect(ALL_PRODUCT_ROUTE)
 
 
 @app.route("/product/edit-product", methods=["POST"])
@@ -226,11 +231,11 @@ def edit_product() -> JSON:
     if text_is_invalid(new_product_name):
         return jsonify(success=False, message="Product name cannot be a number")
     elif num_is_invalid(new_product_price):
-        return jsonify(success=False, message="Invalid number, please input the correct input")
+        return jsonify(success=False, message=INVALID_NUMBER_MSG)
     sql_connection = Connection(mysql)
     sql_connection.execute(Product.edit_product_by_id(product_id, new_product_name, new_product_price))
     sql_connection.commit()
-    return redirect("/product")
+    return redirect(ALL_PRODUCT_ROUTE)
 
 
 @app.route("/product/delete-product")
@@ -247,7 +252,7 @@ def delete_product() -> JSON:
     sql_connection = Connection(mysql)
     sql_connection.execute(Product.delete_product_by_id(product_id))
     sql_connection.commit()
-    return redirect("/product")
+    return redirect(ALL_PRODUCT_ROUTE)
 
 
 @app.route("/stock")
@@ -325,7 +330,7 @@ def add_stock() -> JSON:
     product_id = int(stock_form["product_id"])
     product_amount = int(stock_form["product_amount"])
     if num_is_invalid(product_amount):
-        return jsonify(success=False, message="Invalid number, please input the correct input")
+        return jsonify(success=False, message=INVALID_NUMBER_MSG)
     sql_connection = Connection(mysql)
     duplicate = sql_connection.execute(Stock.get_one_stock_from_one_vend(product_id, vending_id))
     if duplicate > 0:
@@ -334,11 +339,11 @@ def add_stock() -> JSON:
         new_product_amount = int(stock["product_amount"]) + int(product_amount)
         sql_connection.execute(Stock.edit_stock_by_id(new_product_amount, stocking_id))
         sql_connection.commit()
-        return redirect("/stock")
+        return redirect(ALL_STOCK_ROUTE)
     else:
         sql_connection.execute(Stock.add_stock(vending_id, product_id, product_amount))
         sql_connection.commit()
-        return redirect("/stock")
+        return redirect(ALL_STOCK_ROUTE)
 
 
 # Edit stock amount
@@ -358,10 +363,10 @@ def edit_stock() -> JSON:
     stocking_id = int(stock_form["stocking_id"])
     new_product_amount = int(stock_form["product_amount"])
     if num_is_invalid(new_product_amount):
-        return jsonify(success=False, message="Invalid number, please input the correct input")
+        return jsonify(success=False, message=INVALID_NUMBER_MSG)
     sql_connection.execute(Stock.edit_stock_by_id(new_product_amount, stocking_id))
     sql_connection.commit()
-    return redirect("/stock")
+    return redirect(ALL_STOCK_ROUTE)
 
 
 # Delete stock
@@ -381,7 +386,7 @@ def delete_stock() -> JSON:
     stocking_id = int(stock_form["stocking_id"])
     sql_connection.execute(Stock.delete_stock_by_id(stocking_id))
     sql_connection.commit()
-    return redirect("/stock")
+    return redirect(ALL_STOCK_ROUTE)
 
 
 if __name__ == "__main__":
