@@ -36,8 +36,10 @@ create table stocking
 		unique (stocking_id),
 	constraint fk_vending
 		foreign key(vending_id)
-        references vending_machine(vending_id),
+        references vending_machine(vending_id)
+		ON DELETE CASCADE,
 	constraint fk_product
 		foreign key(product_id)
         references product(product_id)
+        ON DELETE CASCADE
 );

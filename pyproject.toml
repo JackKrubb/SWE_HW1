@@ -3,6 +3,9 @@ name = "SWE_HW1"
 version = "0.1.0"
 description = ""
 authors = ["Jack Krub"]
+packages = [
+    { include = "command_template" },
+]
 
 [tool.poetry.dependencies]
 python = ">=3.7,<4.0"
@@ -10,10 +13,10 @@ flask = "^2.2.2"
 mysql = "^0.0.3"
 flask-mysqldb = "^1.0.1"
 flask-bootstrap = "^3.3.7.1"
-mysqlclient = "^2.1.1"
 pymysql = "^1.0.2"
 flask-wtf = "^1.1.1"
 requests = "^2.28.2"
+chardet = "^5.1.0"
 
 
 [tool.poetry.dev-dependencies]

@@ -1,27 +1,42 @@
+import pymysql
+
+pymysql.install_as_MySQLdb()
 import yaml
 from flask import Flask, jsonify, redirect, request
-from flask_bootstrap import Bootstrap
 from flask_mysqldb import MySQL
 from flask_wtf.csrf import CSRFProtect
 from MySQLdb.constants.FIELD_TYPE import JSON
 
-from commands.product_command import Product
-from commands.stock_command import Stock
-from commands.vending_machine_command import VendingMachine
+from command_template.product_command import Product
+from command_template.stock_command import Stock
+from command_template.vending_machine_command import VendingMachine
 from sql_connection import Connection
 
-app = Flask(__name__)
-csrf = CSRFProtect()
-csrf.init_app(app)  # Compliant
-Bootstrap(app)
+mysql = MySQL()
 
-cred = yaml.load(open("../cred.yaml"), Loader=yaml.Loader)
-app.config["MYSQL_HOST"] = cred["mysql_host"]
-app.config["MYSQL_USER"] = cred["mysql_user"]
-app.config["MYSQL_PASSWORD"] = cred["mysql_password"]
-app.config["MYSQL_DB"] = cred["mysql_db"]
-app.config["MYSQL_CURSORCLASS"] = "DictCursor"
-mysql = MySQL(app)
+
+def create_app() -> Flask:
+    """Initialize and setup flask app.
+
+    Args:
+
+    Returns:
+      flask application
+    """
+    application = Flask(__name__)
+    csrf = CSRFProtect()
+    csrf.init_app(application)  # Uncomment when running pytest
+    cred = yaml.load(open("/Users/jacklrr/Desktop/Software Engineering/SWE_HW1/cred.yaml"), Loader=yaml.Loader)
+    application.config["MYSQL_HOST"] = cred["mysql_host"]
+    application.config["MYSQL_USER"] = cred["mysql_user"]
+    application.config["MYSQL_PASSWORD"] = cred["mysql_password"]
+    application.config["MYSQL_DB"] = cred["mysql_db"]
+    application.config["MYSQL_CURSORCLASS"] = "DictCursor"
+    mysql.init_app(application)
+    return application
+
+
+app = create_app()
 
 ALL_VENDING_ROUTE = "/vending"
 ALL_PRODUCT_ROUTE = "/product"
@@ -76,26 +91,27 @@ def all_vending() -> JSON:
         vend = sql_connection.fetch_all_data()
         return jsonify(vend)
     else:
-        return None
+        return jsonify(all_vending_machines)
 
 
-@app.route("/vending/single/<int:vending_id>", methods=["GET"])
-def one_vending(vending_id: int) -> JSON:
+@app.route("/vending/single", methods=["GET"])
+def one_vending() -> JSON:
     """Return one vending machine.
 
     Args:
-        vending_id (int): vending machine's id
 
     Returns:
       json of the vending machine if it exists, none otherwise
     """
+    vending_form = request.form
+    vending_id = int(vending_form["vending_id"])
     sql_connection = Connection(mysql)
     all_vending_machines_by_id = sql_connection.execute(VendingMachine.get_vending_machine_by_id(vending_id))
     if all_vending_machines_by_id > 0:
         vend = sql_connection.fetch_one_data()
         return jsonify(vend)
     else:
-        return None
+        return jsonify(all_vending_machines_by_id)
 
 
 @app.route("/vending/create-vending", methods=["POST"])
@@ -105,7 +121,7 @@ def create_vending() -> JSON:
     Args:
 
     Returns:
-      json of message if cannot create the vending machine, otherwise, return all vending machines
+      json of message if you cannot create the vending machine, otherwise, return all vending machines
     """
     vending_form = request.form
     vending_location = vending_form["vending_location"]
@@ -114,7 +130,7 @@ def create_vending() -> JSON:
     sql_connection = Connection(mysql)
     sql_connection.execute(VendingMachine.create_vending_machine(vending_location))
     sql_connection.commit()
-    return redirect(ALL_VENDING_ROUTE)
+    return jsonify(success=True, message="Vending machine has been successfully created.")
 
 
 @app.route("/vending/edit-vending", methods=["POST"])
@@ -124,7 +140,7 @@ def edit_vending() -> JSON:
     Args:
 
     Returns:
-      json of message if cannot edit the vending machine, otherwise, return all vending machines
+      json of message if you cannot edit the vending machine, otherwise, return all vending machines
     """
     vending_form = request.form
     new_vending_location = vending_form["vending_location"]
@@ -132,12 +148,16 @@ def edit_vending() -> JSON:
     if text_is_invalid(new_vending_location):
         return jsonify(success=False, message="Vending location cannot be a number")
     sql_connection = Connection(mysql)
-    sql_connection.execute(VendingMachine.edit_vending_machine_by_id(new_vending_location, vending_id))
-    sql_connection.commit()
-    return redirect(ALL_VENDING_ROUTE)
+    one_vending_machine_by_id = sql_connection.execute(VendingMachine.get_vending_machine_by_id(vending_id))
+    if one_vending_machine_by_id > 0:
+        sql_connection.execute(VendingMachine.edit_vending_machine_by_id(new_vending_location, vending_id))
+        sql_connection.commit()
+        return jsonify(success=True, message="Vending machine has been successfully edited.")
+    else:
+        return jsonify(success=False, message="Vending machine does not exist.")
 
 
-@app.route("/vending/delete-vending")
+@app.route("/vending/delete-vending", methods=["POST"])
 def delete_vending() -> JSON:
     """Delete a vending machine.
 
@@ -149,9 +169,13 @@ def delete_vending() -> JSON:
     vending_form = request.form
     vending_id = int(vending_form["vending_id"])
     sql_connection = Connection(mysql)
-    sql_connection.execute(VendingMachine.delete_vending_machine_by_id(vending_id))
-    sql_connection.commit()
-    return redirect(ALL_VENDING_ROUTE)
+    one_vending_machine_by_id = sql_connection.execute(VendingMachine.get_vending_machine_by_id(vending_id))
+    if one_vending_machine_by_id > 0:
+        sql_connection.execute(VendingMachine.delete_vending_machine_by_id(vending_id))
+        sql_connection.commit()
+        return jsonify(success=True, message="Vending machine has been successfully deleted.")
+    else:
+        return jsonify(success=False, message="Vending machine does not exist.")
 
 
 @app.route("/product")
@@ -172,8 +196,8 @@ def all_product() -> JSON:
         return None
 
 
-@app.route("/product/single/<int:product_id>", methods=["GET"])
-def one_product(product_id: int) -> JSON:
+@app.route("/product/single", methods=["GET"])
+def one_product() -> JSON:
     """Return one product.
 
     Args:
@@ -181,6 +205,8 @@ def one_product(product_id: int) -> JSON:
     Returns:
       json of that product, otherwise, None
     """
+    product_form = request.form
+    product_id = int(product_form["product_id"])
     sql_connection = Connection(mysql)
     product_by_id = sql_connection.execute(Product.get_product_by_id(product_id))
     if product_by_id > 0:

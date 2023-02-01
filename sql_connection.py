@@ -30,7 +30,7 @@ class Connection:
         self.mysql = mysql
 
     def execute(self, query_statement: str) -> int:
-        """Retrieve all products from the product table.
+        """Execute the given query_statement from the parameter.
 
         Args:
             query_statement (str): query statement
@@ -41,7 +41,7 @@ class Connection:
         return self.cursor.execute(query_statement)
 
     def commit(self):
-        """Retrieve all products from the product table.
+        """Commit the connection.
 
         Args:
 
@@ -52,7 +52,7 @@ class Connection:
         self.cursor.close()
 
     def fetch_all_data_without_close(self) -> List[Tuple]:
-        """Retrieve all products from the product table.
+        """Fetch all data without closing cursor.
 
         Args:
 
@@ -63,7 +63,7 @@ class Connection:
         return result
 
     def fetch_all_data(self) -> List[Tuple]:
-        """Retrieve all products from the product table.
+        """Fetch all data and close cursor.
 
         Args:
 
@@ -75,7 +75,7 @@ class Connection:
         return result
 
     def fetch_one_data_without_close(self) -> dict:
-        """Retrieve all products from the product table.
+        """Fetch one data without closing cursor.
 
         Args:
 
@@ -86,7 +86,7 @@ class Connection:
         return result
 
     def fetch_one_data(self) -> dict:
-        """Retrieve all products from the product table.
+        """Fetch one data and close cursor.
 
         Args:
 
