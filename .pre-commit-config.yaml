@@ -20,7 +20,7 @@ repos:
         additional_dependencies:
           - flake8-annotations
           - flake8-docstrings
-        args: ["--ignore=E402"]
+        args: ["--ignore=E402,F541,W191,E101"]
   - repo: https://github.com/psf/black
     rev: 22.6.0
     hooks:
