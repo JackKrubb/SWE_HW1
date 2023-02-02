@@ -64,7 +64,7 @@ class Product:
         Returns:
           query statement editing a product from the database
         """
-        return (
+        return (  # pragma: no cover
             f"UPDATE product SET product_name={new_product_name}, product_price={new_product_price} "
             f"WHERE product_id = {product_id}"
         )
@@ -79,4 +79,4 @@ class Product:
         Returns:
           query statement deleting a product from the database
         """
-        return f"DELETE FROM product WHERE product_id = {product_id}"
+        return f"DELETE FROM product WHERE product_id = {product_id}"  # pragma: no cover

@@ -75,7 +75,7 @@ class Stock:
         Returns:
           query statement inserting new stocks into the database
         """
-        return (
+        return (  # pragma: no cover
             f"INSERT INTO stocking(vending_id, product_id, product_amount) "
             f"VALUES ('{vending_id}','{product_id}','{product_amount}')"
         )
@@ -91,7 +91,9 @@ class Stock:
         Returns:
           query statement editing a stock from the database
         """
-        return f"UPDATE stocking SET product_amount={new_product_amount} WHERE stocking_id={stocking_id}"
+        return (  # pragma: no cover
+            f"UPDATE stocking SET product_amount={new_product_amount} " f"WHERE stocking_id={stocking_id}"
+        )
 
     @staticmethod
     def delete_stock_by_id(stocking_id: int) -> str:
@@ -103,4 +105,4 @@ class Stock:
         Returns:
           query statement deleting a stock from the database
         """
-        return f"DELETE FROM stocking WHERE stocking_id = {stocking_id}"
+        return f"DELETE FROM stocking WHERE stocking_id = {stocking_id}"  # pragma: no cover

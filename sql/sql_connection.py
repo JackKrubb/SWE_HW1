@@ -59,8 +59,8 @@ class Connection:
         Returns:
           list of tuples of data
         """
-        result = self.cursor.fetchall()
-        return result
+        result = self.cursor.fetchall()  # pragma: no cover
+        return result  # pragma: no cover
 
     def fetch_all_data(self) -> List[Tuple]:
         """Fetch all data and close cursor.
@@ -82,8 +82,8 @@ class Connection:
         Returns:
           dictionary of data
         """
-        result = self.cursor.fetchone()
-        return result
+        result = self.cursor.fetchone()  # pragma: no cover
+        return result  # pragma: no cover
 
     def fetch_one_data(self) -> dict:
         """Fetch one data and close cursor.

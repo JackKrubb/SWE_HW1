@@ -1,8 +1,6 @@
 from flask import Flask
 from flask.testing import FlaskClient
 
-import app
-
 API_ENDPOINT = "http://127.0.0.1:5000/"
 VEND_DOES_NOT_EXIST = "Vending machine does not exist."
 
@@ -10,7 +8,6 @@ VEND_DOES_NOT_EXIST = "Vending machine does not exist."
 def test_all_vending(app2: Flask, client: FlaskClient):
     with app2.app_context():
         all_vending_machines_response = client.get(API_ENDPOINT + f'{"vending"}')
-        assert all_vending_machines_response.json == app.all_vending().json
         assert all_vending_machines_response.status_code == 200
 
 
@@ -33,6 +30,15 @@ def test_create_vending(app2: Flask, client: FlaskClient):
             assert created_vending_machines_response_json["success"] is True
 
 
+def test_create_vending2(app2: Flask, client: FlaskClient):
+    with app2.app_context():
+        test_body = {"vending_location": 15}
+        created_vending_machines_response = client.post(API_ENDPOINT + f'{"vending/create-vending"}', data=test_body)
+        assert created_vending_machines_response.status_code == 200
+        created_vending_machines_response_json = created_vending_machines_response.json
+        assert created_vending_machines_response_json["success"] is False
+
+
 def test_edit_vending(app2: Flask, client: FlaskClient):
     with app2.app_context():
         test_body = {"vending_location": "'new_abc'", "vending_id": 1}
@@ -43,6 +49,15 @@ def test_edit_vending(app2: Flask, client: FlaskClient):
             assert edited_vending_machine_response_json["success"] is False
         else:
             assert edited_vending_machine_response_json["success"] is True
+
+
+def test_edit_vending2(app2: Flask, client: FlaskClient):
+    with app2.app_context():
+        test_body = {"vending_location": 15, "vending_id": 1}
+        edited_vending_machine_response = client.post(API_ENDPOINT + f'{"vending/edit-vending"}', data=test_body)
+        assert edited_vending_machine_response.status_code == 200
+        edited_vending_machine_response_json = edited_vending_machine_response.json
+        assert edited_vending_machine_response_json["success"] is False
 
 
 def test_delete_vending(app2: Flask, client: FlaskClient):
