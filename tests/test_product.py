@@ -20,7 +20,7 @@ def test_one_product(app2: Flask, client: FlaskClient):
 
 def test_edit_product(app2: Flask, client: FlaskClient):
     with app2.app_context():
-        test_body = {"product_name": "'chips'", "product_price": 15, "product_id": 1}
+        test_body = {"product_name": "'potato'", "product_price": 15, "product_id": 1}
         edited_product_response = client.post(API_ENDPOINT + f'{"product/edit-product"}', data=test_body)
         assert edited_product_response.status_code == 200
         edited_product_response_json = edited_product_response.json
@@ -40,7 +40,7 @@ def test_edit_product2(app2: Flask, client: FlaskClient):
 
 def test_add_product(app2: Flask, client: FlaskClient):
     with app2.app_context():
-        test_body = {"product_name": "'chips'", "product_price": 15}
+        test_body = {"product_name": "'mango'", "product_price": 15}
         added_product_response = client.post(API_ENDPOINT + f'{"product/add-product"}', data=test_body)
         assert added_product_response.status_code == 200
         added_product_response_json = added_product_response.json
@@ -58,7 +58,7 @@ def test_add_product2(app2: Flask, client: FlaskClient):
 
 def test_add_product3(app2: Flask, client: FlaskClient):
     with app2.app_context():
-        test_body = {"product_name": "'chips'", "product_price": "'break'"}
+        test_body = {"product_name": "'cheese'", "product_price": "'break'"}
         added_product_response = client.post(API_ENDPOINT + f'{"product/add-product"}', data=test_body)
         assert added_product_response.status_code == 200
         added_product_response_json = added_product_response.json
