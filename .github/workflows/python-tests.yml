@@ -41,6 +41,19 @@ jobs:
   test-and-coverage:
     runs-on: ubuntu-20.04
 
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          mysql_host: 'localhost'
+          mysql_user: 'root'
+          mysql_password: 'iccsroot'
+          mysql_db: 'swe_vending'
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+
     steps:
       - uses: actions/checkout@v2
 
