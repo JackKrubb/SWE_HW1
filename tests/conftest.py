@@ -1,7 +1,8 @@
 import pytest
+from flask import Flask
 from flask.testing import FlaskClient
 
-from app import app, create_app
+from app import create_app
 
 
 @pytest.fixture()
@@ -13,10 +14,15 @@ def app2():
             "TESTING": True,
         }
     )
+    app2.config.update(
+        {
+            "WTF_CSRF_CHECK_DEFAULT": False,
+        }
+    )
     yield app2
 
 
 @pytest.fixture()
-def client() -> FlaskClient:
+def client(app2: Flask) -> FlaskClient:
     """Create test_client for current flask application."""
-    return app.test_client()
+    return app2.test_client()

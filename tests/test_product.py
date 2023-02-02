@@ -5,10 +5,9 @@ API_ENDPOINT = "http://127.0.0.1:5000/"
 PRODUCT_DOES_NOT_EXIST = "Product does not exist."
 
 
-def test_all_product(app2: Flask, client: FlaskClient):
-    with app2.app_context():
-        all_product_response = client.get(API_ENDPOINT + f'{"product"}')
-        assert all_product_response.status_code == 200
+def test_all_product(client: FlaskClient):
+    all_product_response = client.get(API_ENDPOINT + f'{"product"}')
+    assert all_product_response.status_code == 200
 
 
 def test_one_product(app2: Flask, client: FlaskClient):
@@ -18,16 +17,15 @@ def test_one_product(app2: Flask, client: FlaskClient):
         assert one_product_response.status_code == 200
 
 
-def test_edit_product(app2: Flask, client: FlaskClient):
-    with app2.app_context():
-        test_body = {"product_name": "'potato'", "product_price": 15, "product_id": 1}
-        edited_product_response = client.post(API_ENDPOINT + f'{"product/edit-product"}', data=test_body)
-        assert edited_product_response.status_code == 200
-        edited_product_response_json = edited_product_response.json
-        if edited_product_response_json["message"] == PRODUCT_DOES_NOT_EXIST:
-            assert edited_product_response_json["success"] is False
-        else:
-            assert edited_product_response_json["success"] is True
+def test_edit_product(client: FlaskClient):
+    test_body = {"product_name": "'potato'", "product_price": 15, "product_id": 1}
+    edited_product_response = client.post(API_ENDPOINT + f'{"product/edit-product"}', data=test_body)
+    assert edited_product_response.status_code == 200
+    edited_product_response_json = edited_product_response.json
+    if edited_product_response_json["message"] == PRODUCT_DOES_NOT_EXIST:
+        assert edited_product_response_json["success"] is False
+    else:
+        assert edited_product_response_json["success"] is True
 
 
 def test_edit_product2(app2: Flask, client: FlaskClient):

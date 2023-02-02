@@ -79,6 +79,10 @@ jobs:
           path: coverage.xml
           retention-days: 7
 
+      - name: Create yaml
+        run:
+          echo "${{ secrets.SECRET }}" > cred.yaml
+
   build-and-upload:
     needs: [test-and-coverage]
     if: ${{ github.ref == 'refs/heads/main' }}
