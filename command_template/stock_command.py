@@ -28,8 +28,19 @@ class Stock:
         return f'{"SELECT * FROM stocking"}'
 
     @staticmethod
+    def get_stock_by_id(stocking_id: int) -> str:
+        """Retrieve one stock from one vending machine by id.
+
+        Args:
+
+        Returns:
+          query statement to get one stock
+        """
+        return f"SELECT * FROM stocking WHERE stocking_id = {stocking_id}"
+
+    @staticmethod
     def get_one_stock_from_one_vend(product_id: int, vending_id: int) -> str:
-        """Retrieve all products from the product table.
+        """Retrieve one stock from one vending machine.
 
         Args:
             product_id (int): product's id
@@ -42,7 +53,7 @@ class Stock:
 
     @staticmethod
     def get_all_stock_from_one_vend(vending_id: int) -> str:
-        """Retrieve all products from the product table.
+        """Retrieve all stocks from one vending machine.
 
         Args:
             vending_id (int): vending machine's id

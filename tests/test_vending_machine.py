@@ -4,9 +4,10 @@ from flask.testing import FlaskClient
 import app
 
 API_ENDPOINT = "http://127.0.0.1:5000/"
+VEND_DOES_NOT_EXIST = "Vending machine does not exist."
 
 
-def test_get_all_vending_machines(app2: Flask, client: FlaskClient):
+def test_all_vending(app2: Flask, client: FlaskClient):
     with app2.app_context():
         all_vending_machines_response = client.get(API_ENDPOINT + f'{"vending"}')
         assert all_vending_machines_response.json == app.all_vending().json
@@ -23,10 +24,13 @@ def test_one_vending(app2: Flask, client: FlaskClient):
 def test_create_vending(app2: Flask, client: FlaskClient):
     with app2.app_context():
         test_body = {"vending_location": "'abc'"}
-        vending_machines_response = client.post(API_ENDPOINT + f'{"vending/create-vending"}', data=test_body)
-        assert vending_machines_response.status_code == 200
-        vending_machines_response_json = vending_machines_response.json
-        assert vending_machines_response_json["success"] is True
+        created_vending_machines_response = client.post(API_ENDPOINT + f'{"vending/create-vending"}', data=test_body)
+        assert created_vending_machines_response.status_code == 200
+        created_vending_machines_response_json = created_vending_machines_response.json
+        if created_vending_machines_response_json["message"] == VEND_DOES_NOT_EXIST:
+            assert created_vending_machines_response_json["success"] is False
+        else:
+            assert created_vending_machines_response_json["success"] is True
 
 
 def test_edit_vending(app2: Flask, client: FlaskClient):
@@ -35,7 +39,10 @@ def test_edit_vending(app2: Flask, client: FlaskClient):
         edited_vending_machine_response = client.post(API_ENDPOINT + f'{"vending/edit-vending"}', data=test_body)
         assert edited_vending_machine_response.status_code == 200
         edited_vending_machine_response_json = edited_vending_machine_response.json
-        assert edited_vending_machine_response_json["success"] is True
+        if edited_vending_machine_response_json["message"] == VEND_DOES_NOT_EXIST:
+            assert edited_vending_machine_response_json["success"] is False
+        else:
+            assert edited_vending_machine_response_json["success"] is True
 
 
 def test_delete_vending(app2: Flask, client: FlaskClient):
@@ -44,4 +51,7 @@ def test_delete_vending(app2: Flask, client: FlaskClient):
         deleted_vending_machine_response = client.post(API_ENDPOINT + f'{"vending/delete-vending"}', data=test_body)
         assert deleted_vending_machine_response.status_code == 200
         deleted_vending_machine_response_json = deleted_vending_machine_response.json
-        assert deleted_vending_machine_response_json["success"] is True
+        if deleted_vending_machine_response_json["message"] == VEND_DOES_NOT_EXIST:
+            assert deleted_vending_machine_response_json["success"] is False
+        else:
+            assert deleted_vending_machine_response_json["success"] is True

@@ -8,7 +8,7 @@ create table product
 (
 	product_id int auto_increment NOT NULL,
     product_name varchar(100),
-    product_price float,
+    product_price int,
     primary key (product_id),
     constraint u_product
 		unique (product_id)

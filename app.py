@@ -2,15 +2,14 @@ import pymysql
 
 pymysql.install_as_MySQLdb()
 import yaml
-from flask import Flask, jsonify, redirect, request
+from flask import Flask, jsonify, request
 from flask_mysqldb import MySQL
-from flask_wtf.csrf import CSRFProtect
 from MySQLdb.constants.FIELD_TYPE import JSON
 
 from command_template.product_command import Product
 from command_template.stock_command import Stock
 from command_template.vending_machine_command import VendingMachine
-from sql_connection import Connection
+from sql.sql_connection import Connection
 
 mysql = MySQL()
 
@@ -24,8 +23,8 @@ def create_app() -> Flask:
       flask application
     """
     application = Flask(__name__)
-    csrf = CSRFProtect()
-    csrf.init_app(application)  # Uncomment when running pytest
+    # csrf = CSRFProtect()
+    # csrf.init_app(application)  # Uncomment when running pytest
     cred = yaml.load(open("/Users/jacklrr/Desktop/Software Engineering/SWE_HW1/cred.yaml"), Loader=yaml.Loader)
     application.config["MYSQL_HOST"] = cred["mysql_host"]
     application.config["MYSQL_USER"] = cred["mysql_user"]
@@ -59,7 +58,7 @@ def text_is_invalid(text: str) -> bool:
         return False
 
 
-def num_is_invalid(num: float) -> bool:
+def num_is_invalid(num: int) -> bool:
     """Check if number is invalid.
 
     Args:
@@ -68,7 +67,7 @@ def num_is_invalid(num: float) -> bool:
     Returns:
       true if number is negative, or it is not a number, false otherwise
     """
-    if not isinstance(num, float):
+    if not isinstance(num, int):
         return True
     elif num < 0:
         return True
@@ -76,7 +75,7 @@ def num_is_invalid(num: float) -> bool:
         return False
 
 
-@app.route("/vending")
+@app.route("/vending", methods=["GET"])
 def all_vending() -> JSON:
     """Return all vending machines.
 
@@ -178,7 +177,7 @@ def delete_vending() -> JSON:
         return jsonify(success=False, message="Vending machine does not exist.")
 
 
-@app.route("/product")
+@app.route("/product", methods=["GET"])
 def all_product() -> JSON:
     """Return all products.
 
@@ -193,7 +192,7 @@ def all_product() -> JSON:
         prods = sql_connection.fetch_all_data()
         return jsonify(prods)
     else:
-        return None
+        return jsonify(all_products)
 
 
 @app.route("/product/single", methods=["GET"])
@@ -213,10 +212,7 @@ def one_product() -> JSON:
         prods = sql_connection.fetch_one_data()
         return jsonify(prods)
     else:
-        return None
-
-
-# Add new product
+        return jsonify(product_by_id)
 
 
 @app.route("/product/add-product", methods=["POST"])
@@ -230,15 +226,16 @@ def add_product() -> JSON:
     """
     product_form = request.form
     product_name = product_form["product_name"]
-    product_price = float(product_form["product_price"])
+    product_price = int(product_form["product_price"])
     if text_is_invalid(product_name):
         return jsonify(success=False, message="Product name cannot be a number")
     elif num_is_invalid(product_price):
         return jsonify(success=False, message=INVALID_NUMBER_MSG)
     sql_connection = Connection(mysql)
+
     sql_connection.execute(Product.add_product(product_name, product_price))
     sql_connection.commit()
-    return redirect(ALL_PRODUCT_ROUTE)
+    return jsonify(success=True, message="Product has been successfully added.")
 
 
 @app.route("/product/edit-product", methods=["POST"])
@@ -252,19 +249,23 @@ def edit_product() -> JSON:
     """
     product_form = request.form
     new_product_name = product_form["product_name"]
-    new_product_price = float(product_form["product_price"])
+    new_product_price = int(product_form["product_price"])
     product_id = int(product_form["product_id"])
     if text_is_invalid(new_product_name):
         return jsonify(success=False, message="Product name cannot be a number")
     elif num_is_invalid(new_product_price):
         return jsonify(success=False, message=INVALID_NUMBER_MSG)
     sql_connection = Connection(mysql)
-    sql_connection.execute(Product.edit_product_by_id(product_id, new_product_name, new_product_price))
-    sql_connection.commit()
-    return redirect(ALL_PRODUCT_ROUTE)
+    one_product_by_id = sql_connection.execute(Product.get_product_by_id(product_id))
+    if one_product_by_id > 0:
+        sql_connection.execute(Product.edit_product_by_id(product_id, new_product_name, new_product_price))
+        sql_connection.commit()
+        return jsonify(success=True, message="Product has been successfully edited.")
+    else:
+        return jsonify(success=False, message="Product does not exist.")
 
 
-@app.route("/product/delete-product")
+@app.route("/product/delete-product", methods=["POST"])
 def delete_product() -> JSON:
     """Delete a product.
 
@@ -276,12 +277,16 @@ def delete_product() -> JSON:
     product_form = request.form
     product_id = int(product_form["product_id"])
     sql_connection = Connection(mysql)
-    sql_connection.execute(Product.delete_product_by_id(product_id))
-    sql_connection.commit()
-    return redirect(ALL_PRODUCT_ROUTE)
+    one_product_by_id = sql_connection.execute(Product.get_product_by_id(product_id))
+    if one_product_by_id > 0:
+        sql_connection.execute(Product.delete_product_by_id(product_id))
+        sql_connection.commit()
+        return jsonify(success=True, message="Product has been successfully deleted.")
+    else:
+        return jsonify(success=False, message="Product does not exist.")
 
 
-@app.route("/stock")
+@app.route("/stock", methods=["GET"])
 def all_stock() -> JSON:
     """Return all stocks in all vending machines.
 
@@ -296,7 +301,7 @@ def all_stock() -> JSON:
         stock = sql_connection.fetch_all_data()
         return jsonify(stock)
     else:
-        return None
+        return jsonify(all_stocks)
 
 
 @app.route("/stock/single-stock", methods=["GET"])
@@ -318,7 +323,28 @@ def one_stock_one_vend() -> JSON:
         stock = sql_connection.fetch_one_data()
         return jsonify(stock)
     else:
-        return None
+        return jsonify(one_stock_from_one_vend)
+
+
+@app.route("/stock/single", methods=["GET"])
+def one_stock() -> JSON:
+    """Return one stock from one vending machine.
+
+    Args:
+
+    Returns:
+     JSON of the stock of that vending machine, otherwise, None
+    """
+    stock_form = request.form
+    stocking_id = int(stock_form["stocking_id"])
+
+    sql_connection = Connection(mysql)
+    one_stock_from_one_vend = sql_connection.execute(Stock.get_stock_by_id(stocking_id))
+    if one_stock_from_one_vend > 0:
+        stock = sql_connection.fetch_one_data()
+        return jsonify(stock)
+    else:
+        return jsonify(one_stock_from_one_vend)
 
 
 @app.route("/stock/single-vend", methods=["GET"])
@@ -339,7 +365,7 @@ def all_stock_one_vend() -> JSON:
         stock = sql_connection.fetch_all_data()
         return jsonify(stock)
     else:
-        return None
+        return jsonify(all_stocks_one_vend)
 
 
 @app.route("/stock/add-stock", methods=["POST"])
@@ -358,21 +384,26 @@ def add_stock() -> JSON:
     if num_is_invalid(product_amount):
         return jsonify(success=False, message=INVALID_NUMBER_MSG)
     sql_connection = Connection(mysql)
-    duplicate = sql_connection.execute(Stock.get_one_stock_from_one_vend(product_id, vending_id))
-    if duplicate > 0:
+    product_id_exist = sql_connection.execute(Product.get_product_by_id(product_id))
+    if product_id_exist == 0:
+        return jsonify(success=False, message="Stock error.")
+    vending_id_exist = sql_connection.execute(VendingMachine.get_vending_machine_by_id(vending_id))
+    if vending_id_exist == 0:
+        return jsonify(success=False, message="Stock error.")
+    num_of_stock_in_vend = sql_connection.execute(Stock.get_one_stock_from_one_vend(product_id, vending_id))
+    if num_of_stock_in_vend > 0:
         stock = sql_connection.fetch_one_data_without_close()
         stocking_id = int(stock["stocking_id"])
         new_product_amount = int(stock["product_amount"]) + int(product_amount)
         sql_connection.execute(Stock.edit_stock_by_id(new_product_amount, stocking_id))
         sql_connection.commit()
-        return redirect(ALL_STOCK_ROUTE)
-    else:
+        return jsonify(success=True, message="Stock has been successfully added.")
+    elif num_of_stock_in_vend == 0:
         sql_connection.execute(Stock.add_stock(vending_id, product_id, product_amount))
         sql_connection.commit()
-        return redirect(ALL_STOCK_ROUTE)
-
-
-# Edit stock amount
+        return jsonify(success=True, message="Stock has been successfully added.")
+    else:
+        return jsonify(success=False, message="Stock error.")
 
 
 @app.route("/stock/edit-stock", methods=["POST"])
@@ -384,21 +415,24 @@ def edit_stock() -> JSON:
     Returns:
      JSON of message if invalid number, otherwise, return JSON of all sstocks.
     """
-    sql_connection = Connection(mysql)
     stock_form = request.form
     stocking_id = int(stock_form["stocking_id"])
     new_product_amount = int(stock_form["product_amount"])
     if num_is_invalid(new_product_amount):
         return jsonify(success=False, message=INVALID_NUMBER_MSG)
+    sql_connection = Connection(mysql)
+    stock_exist = sql_connection.execute(Stock.get_stock_by_id(stocking_id))
+    if stock_exist == 0:
+        return jsonify(success=False, message="Stock error.")
     sql_connection.execute(Stock.edit_stock_by_id(new_product_amount, stocking_id))
     sql_connection.commit()
-    return redirect(ALL_STOCK_ROUTE)
+    return jsonify(success=True, message="Stock has been successfully edited.")
 
 
 # Delete stock
 
 
-@app.route("/stock/delete-stock")
+@app.route("/stock/delete-stock", methods=["POST"])
 def delete_stock() -> JSON:
     """Delete a stock.
 
@@ -410,9 +444,12 @@ def delete_stock() -> JSON:
     sql_connection = Connection(mysql)
     stock_form = request.form
     stocking_id = int(stock_form["stocking_id"])
+    stock_exist = sql_connection.execute(Stock.get_stock_by_id(stocking_id))
+    if stock_exist == 0:
+        return jsonify(success=False, message="Stock error.")
     sql_connection.execute(Stock.delete_stock_by_id(stocking_id))
     sql_connection.commit()
-    return redirect(ALL_STOCK_ROUTE)
+    return jsonify(success=True, message="Stock has been successfully deleted.")
 
 
 if __name__ == "__main__":
