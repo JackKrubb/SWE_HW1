@@ -17,7 +17,7 @@ def create_app() -> Flask:
       flask application
     """
     application = Flask(__name__)
-    # csrf = CSRFProtect()
+    # csrf = CSRFProtect() might raise security hotspot
     # csrf.init_app(application)  # Uncomment when running pytest
     cred = yaml.load(open("/Users/jacklrr/Desktop/Software Engineering/SWE_HW1/cred.yaml"), Loader=yaml.Loader)
     application.config["MYSQL_HOST"] = cred["mysql_host"]
