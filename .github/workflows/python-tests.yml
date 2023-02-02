@@ -80,8 +80,7 @@ jobs:
           retention-days: 7
 
       - name: Create yaml
-        run:
-          echo "${{ secrets.SECRET }}" > cred.yaml
+        run: echo "${{ secrets.SECRET }}" > cred.yaml
 
   build-and-upload:
     needs: [test-and-coverage]
