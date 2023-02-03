@@ -1,4 +1,5 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=JackKrubb_SWE_HW1&metric=coverage)](https://sonarcloud.io/summary/new_code?id=JackKrubb_SWE_HW1)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=JackKrubb_SWE_HW1&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=JackKrubb_SWE_HW1)
 
 Software Engineering HW1
 

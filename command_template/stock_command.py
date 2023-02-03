@@ -76,7 +76,7 @@ class Stock:
           query statement inserting new stocks into the database
         """
         return (  # pragma: no cover
-            f"INSERT INTO stocking(vending_id, product_id, product_amount) "
+            f"INSERT INTO stocking(vending_id, product_id, product_amount)"
             f"VALUES ('{vending_id}','{product_id}','{product_amount}')"
         )
 
