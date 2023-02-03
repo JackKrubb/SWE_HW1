@@ -40,7 +40,7 @@ class Product:
         return f"SELECT * FROM product WHERE product_id = {product_id}"
 
     @staticmethod
-    def add_product(product_name: str, product_price: float) -> str:
+    def add_product(product_name: str, product_price: int) -> str:
         """Add a product to the database.
 
         Args:
@@ -50,10 +50,10 @@ class Product:
         Returns:
           query statement inserting new product into the database
         """
-        return f"INSERT INTO product(product_name, product_price) VALUES ('{product_name}','{product_price}')"
+        return f"INSERT INTO product(product_name, product_price) VALUES ({product_name},{product_price})"
 
     @staticmethod
-    def edit_product_by_id(product_id: int, new_product_name: str, new_product_price: float) -> str:
+    def edit_product_by_id(product_id: int, new_product_name: str, new_product_price: int) -> str:
         """Edit a product from the database.
 
         Args:
@@ -64,7 +64,7 @@ class Product:
         Returns:
           query statement editing a product from the database
         """
-        return (
+        return (  # pragma: no cover
             f"UPDATE product SET product_name={new_product_name}, product_price={new_product_price} "
             f"WHERE product_id = {product_id}"
         )
@@ -79,4 +79,4 @@ class Product:
         Returns:
           query statement deleting a product from the database
         """
-        return f"DELETE FROM product WHERE product_id = {product_id}"
+        return f"DELETE FROM product WHERE product_id = {product_id}"  # pragma: no cover

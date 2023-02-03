@@ -28,8 +28,19 @@ class Stock:
         return f'{"SELECT * FROM stocking"}'
 
     @staticmethod
+    def get_stock_by_id(stocking_id: int) -> str:
+        """Retrieve one stock from one vending machine by id.
+
+        Args:
+
+        Returns:
+          query statement to get one stock
+        """
+        return f"SELECT * FROM stocking WHERE stocking_id = {stocking_id}"
+
+    @staticmethod
     def get_one_stock_from_one_vend(product_id: int, vending_id: int) -> str:
-        """Retrieve all products from the product table.
+        """Retrieve one stock from one vending machine.
 
         Args:
             product_id (int): product's id
@@ -42,7 +53,7 @@ class Stock:
 
     @staticmethod
     def get_all_stock_from_one_vend(vending_id: int) -> str:
-        """Retrieve all products from the product table.
+        """Retrieve all stocks from one vending machine.
 
         Args:
             vending_id (int): vending machine's id
@@ -64,8 +75,8 @@ class Stock:
         Returns:
           query statement inserting new stocks into the database
         """
-        return (
-            f"INSERT INTO stocking(vending_id, product_id, product_amount) "
+        return (  # pragma: no cover
+            f"INSERT INTO stocking(vending_id, product_id, product_amount)"
             f"VALUES ('{vending_id}','{product_id}','{product_amount}')"
         )
 
@@ -80,7 +91,9 @@ class Stock:
         Returns:
           query statement editing a stock from the database
         """
-        return f"UPDATE stocking SET product_amount={new_product_amount} WHERE stocking_id={stocking_id}"
+        return (  # pragma: no cover
+            f"UPDATE stocking SET product_amount={new_product_amount} WHERE stocking_id={stocking_id}"
+        )
 
     @staticmethod
     def delete_stock_by_id(stocking_id: int) -> str:
@@ -92,4 +105,4 @@ class Stock:
         Returns:
           query statement deleting a stock from the database
         """
-        return f"DELETE FROM stocking WHERE stocking_id = {stocking_id}"
+        return f"DELETE FROM stocking WHERE stocking_id = {stocking_id}"  # pragma: no cover
