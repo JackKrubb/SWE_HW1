@@ -92,7 +92,7 @@ class Stock:
           query statement editing a stock from the database
         """
         return (  # pragma: no cover
-            f"UPDATE stocking SET product_amount={new_product_amount} " f"WHERE stocking_id={stocking_id}"
+            f"UPDATE stocking SET product_amount={new_product_amount} WHERE stocking_id={stocking_id}"
         )
 
     @staticmethod

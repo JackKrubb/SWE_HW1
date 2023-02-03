@@ -63,7 +63,7 @@ class VendingMachine:
           query statement editing a vending machine from the database
         """
         return (  # pragma: no cover
-            f"UPDATE vending_machine SET vending_location={new_vending_location} " f"WHERE vending_id = {vending_id}"
+            f"UPDATE vending_machine SET vending_location={new_vending_location} WHERE vending_id = {vending_id}"
         )
 
     @staticmethod
