@@ -19,7 +19,7 @@ def create_app() -> Flask:
     """
     application = Flask(__name__)
     csrf = CSRFProtect()
-    csrf.init_app(application)  # Uncomment when running pytest test
+    csrf.init_app(application)  # Uncomment when running pytest
     cred = yaml.load(open("./cred.yaml"), Loader=yaml.Loader)
     application.config["MYSQL_HOST"] = cred["mysql_host"]
     application.config["MYSQL_USER"] = cred["mysql_user"]
