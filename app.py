@@ -30,12 +30,14 @@ def create_app() -> Flask:
 
     with application.app_context():
         from routes.product_routes import product_blueprint
+        from routes.purchase_routes import purchase_blueprint
         from routes.stock_routes import stock_blueprint
         from routes.vending_machine_routes import vending_blueprint
 
         application.register_blueprint(vending_blueprint)
         application.register_blueprint(product_blueprint)
         application.register_blueprint(stock_blueprint)
+        application.register_blueprint(purchase_blueprint)
 
     return application
 

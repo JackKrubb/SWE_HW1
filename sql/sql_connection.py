@@ -51,6 +51,16 @@ class Connection:
         self.mysql.connection.commit()
         self.cursor.close()
 
+    def commit_without_close(self):
+        """Commit the connection without closing the cursor.
+
+        Args:
+
+        Returns:
+          commits the connection and doesn't close the cursor
+        """
+        self.mysql.connection.commit()
+
     def fetch_all_data_without_close(self) -> List[Tuple]:
         """Fetch all data without closing cursor.
 

@@ -1,8 +1,11 @@
+import json
+
 from flask import Blueprint, jsonify, request
 from flask_mysqldb import MySQL
 from MySQLdb.constants.FIELD_TYPE import JSON
 
 from command_template.product_command import Product
+from command_template.purchase_command import Purchase
 from command_template.stock_command import Stock
 from command_template.vending_machine_command import VendingMachine
 from sql.sql_connection import Connection
@@ -144,10 +147,24 @@ def add_stock() -> JSON:
         stocking_id = int(stock["stocking_id"])
         new_product_amount = int(stock["product_amount"]) + int(product_amount)
         sql_connection.execute(Stock.edit_stock_by_id(new_product_amount, stocking_id))
+        sql_connection.commit_without_close()
+        sql_connection.execute((Stock.get_all_stock_from_one_vend(vending_id)))
+        stocks_from_vending_machine_json = json.dumps(sql_connection.fetch_all_data_without_close())
+        sql_connection.execute(
+            Purchase.create_purchase_record(
+                product_id, vending_id, new_product_amount, stocks_from_vending_machine_json
+            )
+        )
         sql_connection.commit()
         return jsonify(success=True, message="Stock has been successfully added.")
     elif num_of_stock_in_vend == 0:  # pragma: no cover
         sql_connection.execute(Stock.add_stock(vending_id, product_id, product_amount))
+        sql_connection.commit_without_close()
+        sql_connection.execute((Stock.get_all_stock_from_one_vend(vending_id)))
+        stocks_from_vending_machine_json = json.dumps(sql_connection.fetch_all_data_without_close())
+        sql_connection.execute(
+            Purchase.create_purchase_record(product_id, vending_id, product_amount, stocks_from_vending_machine_json)
+        )
         sql_connection.commit()
         return jsonify(success=True, message="Stock has been successfully added.")
     else:  # pragma: no cover
