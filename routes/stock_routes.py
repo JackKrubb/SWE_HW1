@@ -30,7 +30,7 @@ def import_mysql() -> MySQL:
 
 
 def num_is_invalid(num: str) -> bool:
-    """Check if number is invalid.
+    """Check if the number is invalid.
 
     Args:
         num (int): input number
