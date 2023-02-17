@@ -69,3 +69,5 @@ Checklist:
 HOW TO RUN:
 1. Run `swe_vending.sql` script to create a database locally
 2. Run app.py by typing `python3 app.py`
+    
+Hi
